@@ -7,14 +7,76 @@ services:
       dockerfile: docker/Dockerfile
     image: scrappie_bot:latest
     container_name: scrappie_core
-    # Host networking is easiest for ROS2 discovery and hardware access
-    network_mode: host
-    privileged: true # Required for USB (RealSense) and Serial (Motors) access
+    
+    # Bridge network for Windows/Podman compatibility (host mode doesn't work on Windows)
+    # For ROS2 DDS discovery, we'll use explicit ports
+    network_mode: bridge
+    ports:
+      # ROS2 DDS discovery ports
+      - "7400-7500:7400-7500/udp"  # DDS discovery
+      - "11311:11311"                # ROS Master (if needed)
+      # Common service ports
+      - "8080:8080"                  # Web interfaces
+      - "9090:9090"                  # Rosbridge
+    
+    # Privileged mode for USB/serial access
+    # Works with both Docker and Podman
+    privileged: true
+    
+    # Volume mappings - Windows/WSL compatible
     volumes:
-      - ../src:/ws/src
+      # Source code (WSL path format works on Windows)
+      - ../src:/ws/src:z
+      # Shared memory for efficient image transport (Podman compatible)
+      - /dev/shm:/dev/shm
+      # USB devices - Podman handles this differently than Docker
+      # On Windows/WSL, USB passthrough requires specific configuration
       - /dev:/dev
+    
+    # Device mappings for serial ports
+    # Adjust as needed for your USB-Serial adapter
+    devices:
+      - /dev/ttyUSB0:/dev/ttyUSB0  # USB serial (adjust if needed)
+      # Add more devices as needed:
+      # - /dev/ttyUSB1:/dev/ttyUSB1
+      # - /dev/video0:/dev/video0
+    
+    # Environment variables
     environment:
-      - DISPLAY=${DISPLAY}
+      # ROS2 configuration
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      
+      # Display for GUI (optional, may not work on Windows without X server)
+      - DISPLAY=${DISPLAY:-:0}
       - QT_X11_NO_MITSHM=1
+      
+      # Podman-specific: disable SELinux conflicts
+      - PODMAN_USERNS=keep-id
+      
+      # Timezone (optional)
+      - TZ=${TZ:-America/Los_Angeles}
+    
+    # Security options for Podman
+    security_opt:
+      - label:disable  # Disable SELinux labeling for Podman
+    
     # Keep container running indefinitely for development
     command: bash -c "tail -f /dev/null"
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Resource limits (optional, helps with Podman)
+    # deploy:
+    #   resources:
+    #     limits:
+    #       cpus: '4'
+    #       memory: 8G
+
+# Note: On Windows, you may need to:
+# 1. Install WSL2 and enable it for Docker/Podman
+# 2. For USB devices, use usbipd (https://github.com/dorssel/usbipd-win)
+# 3. For X11/GUI: Install VcXsrv or similar X server
+# 4. Set DISPLAY environment variable: export DISPLAY=host.docker.internal:0
+
