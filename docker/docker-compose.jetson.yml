@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  scrappie_jetson:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.jetson
+    image: scrappie_bot:jetson-latest
+    container_name: scrappie_jetson
+    hostname: scrappie-robot
+    
+    # Use host networking for best ROS2 performance on Jetson
+    network_mode: host
+    
+    # Runtime configuration for Jetson
+    runtime: nvidia
+    
+    # Privileged mode for hardware access
+    privileged: true
+    
+    # Device mappings for Jetson Orin Nano
+    devices:
+      # GPIO UART (Serial pins on 40-pin header)
+      - /dev/ttyTHS0:/dev/ttyTHS0
+      # I2C buses (if needed)
+      - /dev/i2c-0:/dev/i2c-0
+      - /dev/i2c-1:/dev/i2c-1
+      # GPU and video devices
+      - /dev/video0:/dev/video0
+      - /dev/video1:/dev/video1
+      # All USB devices (for RealSense cameras)
+      # Alternative: map specific devices
+    
+    # Volume mappings
+    volumes:
+      # Source code
+      - ../src:/ws/src
+      # USB devices for hot-plug support
+      - /dev:/dev
+      # Jetson stats and monitoring
+      - /sys:/sys:ro
+      # X11 for GUI (optional, for RViz)
+      - /tmp/.X11-unix:/tmp/.X11-unix:rw
+      # Shared memory for efficient image transport
+      - /dev/shm:/dev/shm
+    
+    # Environment variables
+    environment:
+      # Display for RViz/GUI
+      - DISPLAY=${DISPLAY:-:0}
+      - QT_X11_NO_MITSHM=1
+      
+      # ROS2 configuration
+      - ROS_DOMAIN_ID=${ROS_DOMAIN_ID:-0}
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      
+      # Jetson-specific
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=all
+      
+      # CUDA configuration
+      - CUDA_VISIBLE_DEVICES=0
+      
+      # Performance tuning
+      - OMP_NUM_THREADS=6
+      - OPENBLAS_NUM_THREADS=6
+    
+    # Resource limits (adjust based on your needs)
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu, compute, utility, graphics]
+    
+    # Keep container running
+    command: bash -c "tail -f /dev/null"
+    
+    # Restart policy for production
+    restart: unless-stopped

@@ -1,0 +1,25 @@
+Compute:
+Jetson Orin Nano Super
+Raspberry Pi 3B+
+Seeed ESP32-S3 Sense
+Esp32/8266 16 PIN x12
+
+Sensors:
+Intel RealSense d435i x2
+HC-SR04 Ultrasonic Sensor x4
+
+Motor Driver:
+MDDS30
+
+Chassis:
+Jazzy Elite ES
+
+Battery:
+24v 50ah SLA
+
+Motors:
+2x 24v 250w
+
+Additional Components:
+Startech 2 Port USB to Serial Adapter
+

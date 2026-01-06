@@ -1,0 +1,100 @@
+```
+╔══════════════════════════════════════════════════════════════════╗
+║         Jetson Orin Nano GPIO UART Wiring Diagram               ║
+╚══════════════════════════════════════════════════════════════════╝
+
+Jetson Orin Nano 40-Pin Header (J12)
+┌────────────────────────────────────────┐
+│                                        │
+│  3.3V  [ 1] [ 2]  5V                  │
+│  I2C   [ 3] [ 4]  5V                  │
+│  I2C   [ 5] ╔═══════╗ GND  ◄────────────── MDDS30 GND (Black)
+│  GPIO  [ 7] ║ [ 8] ║ TXD  ◄────────────── MDDS30 RXD (Orange)
+│  GND   [ 9] ║ [10] ║ RXD  ◄────────────── MDDS30 TXD (Yellow)
+│  GPIO  [11] ╚═════════                │
+│  ...                                   │
+└────────────────────────────────────────┘
+        ▲
+        │
+    UART1 (/dev/ttyTHS0)
+
+
+MDDS30 Motor Driver
+┌─────────────────────────────┐
+│                             │
+│  Power In:  24V Battery     │
+│  Motor Out: Left/Right      │
+│                             │
+│  Serial Interface:          │
+│  ┌────┐                     │
+│  │ TX │ ◄─── Yellow ───────── Pin 10 (Jetson RXD)
+│  │ RX │ ◄─── Orange ───────── Pin 8  (Jetson TXD)
+│  │GND │ ◄─── Black  ───────── Pin 6  (Jetson GND)
+│  └────┘                     │
+│                             │
+│  Baud: 9600                 │
+│  Mode: Serial Packet        │
+└─────────────────────────────┘
+
+
+Signal Flow:
+─────────────
+
+Command Path:
+  ROS2 Node → /dev/ttyTHS0 → Pin 8 (TXD) → MDDS30 RX → Motors
+
+Feedback Path (future encoder support):
+  Encoders → MDDS30 TX → Pin 10 (RXD) → /dev/ttyTHS0 → ROS2 Node
+
+
+Pin Details:
+────────────
+Pin 6  (GND): Ground - Connect to MDDS30 GND
+Pin 8  (TXD): Transmit Data - Jetson sends commands
+Pin 10 (RXD): Receive Data - Jetson receives feedback
+
+Device: /dev/ttyTHS0 (Hardware UART1)
+Config: 9600 baud, 8N1 (8 data bits, no parity, 1 stop bit)
+
+
+Testing UART:
+─────────────
+# Check device exists
+$ ls -l /dev/ttyTHS0
+crw-rw-rw- 1 root dialout 238, 0 Jan  5 22:00 /dev/ttyTHS0
+
+# Test with Python
+$ python3
+>>> import serial
+>>> ser = serial.Serial('/dev/ttyTHS0', 9600)
+>>> ser.write(b'\x80\x00\x00\x80')  # Stop command
+>>> ser.close()
+
+
+Wire Color Convention (Suggested):
+───────────────────────────────────
+Black  → GND (Pin 6)
+Orange → TXD (Pin 8)  - Jetson transmits
+Yellow → RXD (Pin 10) - Jetson receives
+
+Tip: Label wires for easy troubleshooting!
+
+
+Safety Notes:
+─────────────
+⚠️  Do NOT connect 5V from MDDS30 to Jetson pins
+⚠️  Use only 3.3V logic levels for UART
+⚠️  MDDS30 should be powered separately from 24V battery
+⚠️  Ensure common ground between Jetson and MDDS30
+⚠️  Double-check polarity before powering on
+
+
+Alternative: USB Serial Adapter (Development)
+──────────────────────────────────────────────
+For development/testing, you can use USB-Serial adapter:
+
+USB-Serial Adapter → /dev/ttyUSB0 → MDDS30
+(Requires external adapter, slightly higher latency)
+
+Use docker-compose.yml (not jetson version) for USB serial.
+```

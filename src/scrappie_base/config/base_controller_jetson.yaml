@@ -1,0 +1,24 @@
+# Base Controller Configuration - Jetson Orin Nano
+base_controller:
+  ros__parameters:
+    # Jetson GPIO UART on 40-pin header (pins 8 & 10)
+    # Using hardware UART1: /dev/ttyTHS0
+    serial_port: /dev/ttyTHS0
+    baudrate: 9600
+    
+    # Robot physical parameters (from URDF)
+    wheel_separation: 0.50     # meters - distance between drive wheels
+    wheel_radius: 0.1143       # meters - drive wheel radius
+    
+    # Velocity limits
+    max_linear_speed: 1.0      # m/s - maximum forward/backward speed
+    max_angular_speed: 2.0     # rad/s - maximum rotation speed
+    
+    # Odometry publishing
+    publish_odom_tf: true      # Publish odom->base_footprint transform
+    
+    # Serial timeout (seconds)
+    serial_timeout: 0.1
+    
+    # Control loop rate (Hz)
+    control_rate: 50.0

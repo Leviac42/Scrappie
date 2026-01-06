@@ -1,0 +1,20 @@
+version: '3.8'
+
+services:
+  scrappie_dev:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    image: scrappie_bot:latest
+    container_name: scrappie_core
+    # Host networking is easiest for ROS2 discovery and hardware access
+    network_mode: host
+    privileged: true # Required for USB (RealSense) and Serial (Motors) access
+    volumes:
+      - ../src:/ws/src
+      - /dev:/dev
+    environment:
+      - DISPLAY=${DISPLAY}
+      - QT_X11_NO_MITSHM=1
+    # Keep container running indefinitely for development
+    command: bash -c "tail -f /dev/null"

@@ -1,0 +1,104 @@
+# Jetson Orin Nano Optimized Dockerfile
+# Based on NVIDIA L4T (Linux for Tegra) with ROS2 Humble
+# Compatible with JetPack 6.x (L4T R36.3.0+)
+# Optimized for CUDA, TensorRT, and hardware acceleration
+
+# Use NVIDIA's official L4T ROS2 Humble image for JetPack 6
+# This includes CUDA 12.2, cuDNN 8.9, TensorRT 8.6
+# Compatible with JetPack 6.0 and later
+FROM dustynv/ros:humble-desktop-l4t-r36.3.0
+
+# Set environment variables for Jetson
+ENV DEBIAN_FRONTEND=noninteractive
+ENV CUDA_HOME=/usr/local/cuda
+ENV LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:/usr/local/cuda/lib64
+ENV PATH=${PATH}:/usr/local/cuda/bin
+
+# Install ROS2 Humble packages optimized for Jetson
+RUN apt-get update && apt-get install -y \
+    ros-humble-navigation2 \
+    ros-humble-nav2-bringup \
+    ros-humble-slam-toolbox \
+    ros-humble-robot-localization \
+    ros-humble-xacro \
+    ros-humble-depthimage-to-laserscan \
+    ros-humble-joint-state-publisher \
+    ros-humble-robot-state-publisher \
+    python3-pip \
+    python3-serial \
+    python3-colcon-common-extensions \
+    git \
+    i2c-tools \
+    can-utils \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install RealSense SDK for Jetson
+# Built for L4T/Jetson optimization
+RUN apt-get update && apt-get install -y \
+    libssl-dev \
+    libusb-1.0-0-dev \
+    libudev-dev \
+    pkg-config \
+    libgtk-3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+# Build RealSense from source for Jetson optimization
+WORKDIR /tmp
+RUN git clone https://github.com/IntelRealSense/librealsense.git && \
+    cd librealsense && \
+    git checkout v2.55.1 && \
+    mkdir build && cd build && \
+    cmake ../ \
+        -DCMAKE_BUILD_TYPE=Release \
+        -DBUILD_EXAMPLES=false \
+        -DBUILD_GRAPHICAL_EXAMPLES=false \
+        -DFORCE_RSUSB_BACKEND=ON \
+        -DBUILD_PYTHON_BINDINGS=ON \
+        -DPYTHON_EXECUTABLE=/usr/bin/python3 && \
+    make -j$(nproc) && \
+    make install && \
+    cd ../.. && rm -rf librealsense
+
+# Install RealSense ROS2 wrapper (built for performance)
+WORKDIR /opt/ros_ws
+RUN mkdir -p src && \
+    cd src && \
+    git clone https://github.com/IntelRealSense/realsense-ros.git -b ros2-development && \
+    cd .. && \
+    . /opt/ros/humble/setup.sh && \
+    colcon build --cmake-args -DCMAKE_BUILD_TYPE=Release --parallel-workers $(nproc) && \
+    rm -rf build log
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir \
+    pyserial \
+    numpy \
+    jetson-stats
+
+# Configure GPIO UART permissions
+# Jetson Orin uses /dev/ttyTHS0 for GPIO UART
+RUN usermod -a -G dialout root && \
+    usermod -a -G tty root
+
+# Setup workspace
+WORKDIR /ws
+
+# Configure environment for RealSense and ROS2
+ENV REALSENSE_ROOT=/usr/local
+ENV PYTHONPATH=${PYTHONPATH}:/usr/local/lib/python3.10/pyrealsense2
+
+# Source ROS2 and overlay in bashrc
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \
+    echo "source /opt/ros_ws/install/setup.bash" >> ~/.bashrc && \
+    echo "if [ -f /ws/install/setup.bash ]; then source /ws/install/setup.bash; fi" >> ~/.bashrc && \
+    echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" >> ~/.bashrc
+
+# Enable NVPMODEL for max performance (15W mode for Orin Nano)
+# This will be overridden by runtime config if needed
+ENV NVPMODEL_MODE=0
+
+# Set entrypoint
+COPY docker/ros_entrypoint_jetson.sh /
+RUN chmod +x /ros_entrypoint_jetson.sh
+ENTRYPOINT ["/ros_entrypoint_jetson.sh"]
+CMD ["bash"]
