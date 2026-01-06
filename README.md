@@ -45,10 +45,12 @@ This project supports **two deployment targets**:
 
 ### 2. Production (Jetson Orin Nano)
 - Optimized for NVIDIA Jetson Orin Nano Super
+- **JetPack 6.x fully supported** (latest version recommended)
 - Uses GPIO UART (pins 8, 10)
-- NVIDIA L4T base with CUDA/TensorRT
+- NVIDIA L4T base with CUDA 12.2/TensorRT 8.6
 - Hardware-accelerated vision processing
 - **See: [JETSON_DEPLOYMENT.md](JETSON_DEPLOYMENT.md)**
+- **JetPack 6 Notes: [JETPACK6_NOTES.md](JETPACK6_NOTES.md)**
 
 **Comparison Guide:** [DEV_VS_JETSON.md](DEV_VS_JETSON.md)
 

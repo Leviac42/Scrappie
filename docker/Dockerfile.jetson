@@ -5,8 +5,8 @@
 
 # Use NVIDIA's official L4T ROS2 Humble image for JetPack 6
 # This includes CUDA 12.2, cuDNN 8.9, TensorRT 8.6
-# Compatible with JetPack 6.0 and later
-FROM dustynv/ros:humble-desktop-l4t-r36.3.0
+# Using ros-base for smaller size, we'll add desktop tools as needed
+FROM dustynv/ros:humble-ros-base-l4t-r36.3.0
 
 # Set environment variables for Jetson
 ENV DEBIAN_FRONTEND=noninteractive
@@ -24,6 +24,9 @@ RUN apt-get update && apt-get install -y \
     ros-humble-depthimage-to-laserscan \
     ros-humble-joint-state-publisher \
     ros-humble-robot-state-publisher \
+    ros-humble-rviz2 \
+    ros-humble-rqt \
+    ros-humble-rqt-common-plugins \
     python3-pip \
     python3-serial \
     python3-colcon-common-extensions \
