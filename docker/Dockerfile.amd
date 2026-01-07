@@ -17,6 +17,7 @@ RUN apt-get update && apt-get install -y \
     ros-humble-rviz2 \
     ros-humble-rqt \
     ros-humble-rqt-common-plugins \
+    ros-humble-rmw-cyclonedds-cpp \
     python3-pip \
     python3-colcon-common-extensions \
     git \
