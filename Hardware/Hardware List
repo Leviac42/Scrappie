@@ -1,8 +1,7 @@
 Compute:
-Jetson Orin Nano Super
-Raspberry Pi 3B+
-Seeed ESP32-S3 Sense
-Esp32/8266 16 PIN x12
+Jetson Orin Nano Super (8GB RAM, ARM64, 10-15W)
+AMD Ryzen 7 6800u - GPD Win4 (64GB RAM, x86_64, 15-28W, RDNA2 GPU)
+Surface Pro 9 i5 (16GB RAM, x86_64, 12-15W, Iris Xe GPU)
 
 Sensors:
 Intel RealSense d435i x2
@@ -15,11 +14,25 @@ Chassis:
 Jazzy Elite ES
 
 Battery:
-24v 50ah SLA
+24v 50ah SLA (1200Wh capacity)
 
 Motors:
 2x 24v 250w
 
-Additional Components:
-Startech 2 Port USB to Serial Adapter
+Power Distribution:
+DC-DC Converter 24V → 19V 3A (AMD 6800u)
+DC-DC Converter 24V → 15V 3A (Jetson Orin Nano)
+DC-DC Converter 24V → 12V 2A (Surface Pro 9)
+DC-DC Converter 24V → 5V 5A (Cameras, fans, accessories)
 
+Network:
+WiFi 6 Router/AP (internal robot network)
+Ethernet switch (100/1000 Mbps)
+
+Cooling:
+2x 80mm 5V fans (robot ventilation)
+Heat sinks for all compute platforms
+
+Additional Components:
+Startech 2 Port USB to Serial Adapter (for development)
+GPIO UART (Jetson for production)

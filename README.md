@@ -35,12 +35,15 @@ A ROS2-based autonomous mobile robot stack for the Scrappie robot, featuring dua
 
 ## Deployment Options
 
-This project supports **two deployment targets**:
+This project supports **three deployment targets**:
 
 ### 1. Development (x86 PC)
 - For development and testing
 - Uses USB-Serial adapter for MDDS30
 - Standard ROS2 Docker images
+- **Platforms**: Linux, Windows (WSL2), macOS
+- **Container Runtime**: Docker or Podman
+- **Windows/Podman Guide**: [WINDOWS_PODMAN_SETUP.md](WINDOWS_PODMAN_SETUP.md)
 - See: [Quick Start](#quick-start) below
 
 ### 2. Production (Jetson Orin Nano)
@@ -51,6 +54,15 @@ This project supports **two deployment targets**:
 - Hardware-accelerated vision processing
 - **See: [JETSON_DEPLOYMENT.md](JETSON_DEPLOYMENT.md)**
 - **JetPack 6 Notes: [JETPACK6_NOTES.md](JETPACK6_NOTES.md)**
+
+### 3. Distributed Multi-Machine ⭐ **Advanced**
+- **Jetson**: Sensors + motor control (real-time processing)
+- **AMD 6800u**: Heavy compute (SLAM, Nav2, AI/ML)
+- **Surface Pro 9**: Visualization and control station
+- Maximum capability with 64GB RAM for advanced AI
+- ROS2 multi-machine architecture
+- **See: [DISTRIBUTED_DEPLOYMENT.md](DISTRIBUTED_DEPLOYMENT.md)**
+- **Power Info: [POWER_DISTRIBUTION.md](POWER_DISTRIBUTION.md)**
 
 **Comparison Guide:** [DEV_VS_JETSON.md](DEV_VS_JETSON.md)
 

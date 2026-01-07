@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<CycloneDDS xmlns="https://cdds.io/config" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://cdds.io/config https://raw.githubusercontent.com/eclipse-cyclonedds/cyclonedds/master/etc/cyclonedds.xsd">
+    <Domain id="any">
+        <General>
+            <!-- Network interface for multi-machine ROS2 -->
+            <!-- Update to match your robot's network: 192.168.50.0/24 -->
+            <NetworkInterfaceAddress>AUTO</NetworkInterfaceAddress>
+            
+            <!-- Allow multicast for discovery -->
+            <AllowMulticast>true</AllowMulticast>
+            
+            <!-- Enable shared memory for local communication -->
+            <EnableSharedMemory>true</EnableSharedMemory>
+        </General>
+        
+        <Discovery>
+            <!-- Peers for explicit discovery (optional) -->
+            <!-- Uncomment and add IPs if auto-discovery doesn't work -->
+            <!--
+            <Peers>
+                <Peer address="192.168.50.10"/>  <!-\- Jetson -->
+                <Peer address="192.168.50.20"/>  <!-\- AMD -->
+                <Peer address="192.168.50.100"/> <!-\- Surface -->
+            </Peers>
+            -->
+        </Discovery>
+        
+        <Internal>
+            <!-- Improved reliability for wireless networks -->
+            <MinimumSocketReceiveBufferSize>10MB</MinimumSocketReceiveBufferSize>
+            <MinimumSocketSendBufferSize>10MB</MinimumSocketSendBufferSize>
+        </Internal>
+        
+        <Tracing>
+            <!-- Enable for debugging network issues -->
+            <!-- <Verbosity>finest</Verbosity> -->
+            <Verbosity>warning</Verbosity>
+            <OutputFile>stdout</OutputFile>
+        </Tracing>
+    </Domain>
+</CycloneDDS>

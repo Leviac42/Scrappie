@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  scrappie_amd:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile.amd
+    image: scrappie_bot:amd-latest
+    container_name: scrappie_amd_compute
+    hostname: scrappie-compute
+    
+    # Bridge network for ROS2 multi-machine
+    network_mode: bridge
+    ports:
+      # ROS2 DDS discovery ports
+      - "7400-7500:7400-7500/udp"
+      # Web interfaces
+      - "8080:8080"
+      - "9090:9090"
+    
+    # Privileged for potential hardware access
+    privileged: false
+    
+    # Volume mappings
+    volumes:
+      # Source code
+      - ../src:/ws/src
+      # Shared memory for image transport
+      - /dev/shm:/dev/shm
+      # Configuration files
+      - ./cyclonedds.xml:/cyclonedds.xml:ro
+    
+    # Environment variables for multi-machine ROS2
+    environment:
+      # ROS2 configuration
+      - ROS_DOMAIN_ID=42
+      - RMW_IMPLEMENTATION=rmw_cyclonedds_cpp
+      - CYCLONEDDS_URI=file:///cyclonedds.xml
+      
+      # Machine identification
+      - ROS_NAMESPACE=
+      - ROBOT_NAME=scrappie
+      
+      # Network configuration
+      - ROS_LOCALHOST_ONLY=0
+      - ROS_AUTOMATIC_DISCOVERY_RANGE=SUBNET
+      
+      # Display (if using GUI locally)
+      - DISPLAY=${DISPLAY:-:0}
+      - QT_X11_NO_MITSHM=1
+      
+      # Timezone
+      - TZ=${TZ:-America/Los_Angeles}
+      
+      # ROCm GPU (if installed)
+      # - HSA_OVERRIDE_GFX_VERSION=10.3.0
+    
+    # Resource limits - AMD 6800u has plenty of resources
+    deploy:
+      resources:
+        limits:
+          cpus: '8'      # All cores available
+          memory: 32G    # Half of 64GB for container
+        reservations:
+          cpus: '4'
+          memory: 16G
+    
+    # Keep container running
+    command: bash -c "tail -f /dev/null"
+    
+    # Restart policy
+    restart: unless-stopped
+
+# For ROCm GPU support, uncomment:
+# Add to scrappie_amd service:
+#   devices:
+#     - /dev/kfd:/dev/kfd
+#     - /dev/dri:/dev/dri
+#   group_add:
+#     - video
+#     - render

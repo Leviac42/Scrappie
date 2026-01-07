@@ -1,0 +1,52 @@
+FROM ros:humble-perception
+
+# AMD 6800u optimized Dockerfile for Scrappie Robot
+# x86_64 platform with ROCm support for GPU acceleration
+
+# Set environment
+ENV DEBIAN_FRONTEND=noninteractive
+ENV ROCM_VERSION=6.0
+
+# Install ROS2 Humble packages
+RUN apt-get update && apt-get install -y \
+    ros-humble-navigation2 \
+    ros-humble-nav2-bringup \
+    ros-humble-slam-toolbox \
+    ros-humble-robot-localization \
+    ros-humble-xacro \
+    ros-humble-rviz2 \
+    ros-humble-rqt \
+    ros-humble-rqt-common-plugins \
+    python3-pip \
+    python3-colcon-common-extensions \
+    git \
+    wget \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install ROCm for AMD GPU acceleration (optional, for AI workloads)
+# Uncomment if you want GPU acceleration for YOLO/ML models
+# RUN wget -q -O - https://repo.radeon.com/rocm/rocm.gpg.key | apt-key add - && \
+#     echo 'deb [arch=amd64] https://repo.radeon.com/rocm/apt/6.0 jammy main' | tee /etc/apt/sources.list.d/rocm.list && \
+#     apt-get update && \
+#     apt-get install -y rocm-dev rocm-libs && \
+#     rm -rf /var/lib/apt/lists/*
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir \
+    numpy \
+    opencv-python-headless
+
+# Setup workspace
+WORKDIR /ws
+
+# Configure environment for ROS2 and multi-machine setup
+RUN echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc && \
+    echo "if [ -f /ws/install/setup.bash ]; then source /ws/install/setup.bash; fi" >> ~/.bashrc && \
+    echo "export RMW_IMPLEMENTATION=rmw_cyclonedds_cpp" >> ~/.bashrc && \
+    echo "export ROS_DOMAIN_ID=42" >> ~/.bashrc
+
+# Set entrypoint
+COPY docker/ros_entrypoint.sh /
+RUN chmod +x /ros_entrypoint.sh
+ENTRYPOINT ["/ros_entrypoint.sh"]
+CMD ["bash"]
